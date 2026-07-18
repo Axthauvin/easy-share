@@ -1,6 +1,10 @@
-# Easy-Share
+<div align="center">
+  <img src="public/icon.png" alt="Easy-Share Logo" width="200" style="border-radius: 10px;"/>
+  <h1>Easy-Share</h1>
+  <p>A minimalist, local network file and text sharing utility.</p>
+</div>
 
-A minimalist, local network file and text sharing utility. Allows quick transfers between devices (PCs, phones, tablets) connected to the same Wi-Fi network.
+Allows quick transfers between devices (PCs, phones, tablets) connected to the same Wi-Fi network.
 
 Supported platforms: Windows, Linux, macOS, Android, iOS.
 Supported languages: English, Spanish, French, German, Italian, Portuguese.
