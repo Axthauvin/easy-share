@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
 </head>
 <body>
   <div class="app-container">
@@ -15,11 +17,25 @@
     <header class="app-header">
       <div class="header-left">
         <div class="title-row">
-          <h1>Easy-Share</h1>
-          <div class="lang-selector">
-            <button id="lang-fr-btn" class="lang-btn">FR</button>
-            <span class="lang-divider">|</span>
-            <button id="lang-en-btn" class="lang-btn">EN</button>
+          <img src="icon.png" class="app-logo" alt="Easy-Share logo" />
+          <div class="title-text-group">
+            <h1>Easy-Share</h1>
+            <p class="tagline" data-i18n="tagline">Partage local instantané et sécurisé</p>
+          </div>
+          <div class="lang-dropdown" id="lang-dropdown">
+            <button class="lang-dropdown-trigger" id="lang-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+              <span id="lang-current-label">Français</span>
+              <svg class="lang-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <ul class="lang-dropdown-menu" id="lang-dropdown-menu" role="listbox">
+              <li class="lang-option" data-lang="fr" role="option">🇫🇷 Français</li>
+              <li class="lang-option" data-lang="en" role="option">🇬🇧 English</li>
+              <li class="lang-option" data-lang="es" role="option">🇪🇸 Español</li>
+              <li class="lang-option" data-lang="de" role="option">🇩🇪 Deutsch</li>
+              <li class="lang-option" data-lang="it" role="option">🇮🇹 Italiano</li>
+              <li class="lang-option" data-lang="pt" role="option">🇵🇹 Português</li>
+            </ul>
           </div>
         </div>
         <div id="connection-status" class="status-indicator status-connecting">
@@ -30,16 +46,18 @@
       
       <div class="header-right">
         <div class="desktop-qr-card card">
-          <div class="qr-preview-box">
-            <img id="desktop-qrcode-img" alt="QR Code" style="display: none;" />
-            <div id="desktop-qrcode-placeholder" class="qr-placeholder-dots">...</div>
-          </div>
-          <div class="desktop-address-copy">
-            <code id="desktop-address-text" data-i18n="loading">Chargement...</code>
-            <button id="desktop-copy-btn" class="icon-btn-small" title="Copier le lien">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          <span class="qr-label" data-i18n="qrLabel">Scanner pour rejoindre</span>
+          <div class="qr-row">
+            <div class="qr-preview-box">
+              <img id="desktop-qrcode-img" alt="QR Code" style="display: none;" />
+              <div id="desktop-qrcode-placeholder" class="qr-placeholder-dots">...</div>
+            </div>
+            <button id="desktop-copy-btn" class="copy-link-btn" data-i18n="copyLink">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              <span data-i18n="copyLink">Copier le lien</span>
             </button>
           </div>
+          <button class="trouble-trigger-btn" id="desktop-trouble-btn" data-i18n="troubleBtn">Impossible de se connecter ?</button>
         </div>
 
         <button id="burger-menu-btn" class="burger-btn" title="Afficher le QR Code">
@@ -59,7 +77,7 @@
           </div>
         </div>
         <h3 data-i18n="noDevicesTitle">Aucun appareil connecté</h3>
-        <p data-i18n="noDevicesDesc">Lancez Easy-Share sur un autre appareil pour commencer à partager</p>
+        <p data-i18n="noDevicesDesc">Connectez-vous à Easy-Share sur un autre appareil</p>
       </div>
 
       <div id="devices-container" class="devices-container hidden">
@@ -68,7 +86,25 @@
 
     <footer class="app-footer">
       <p><span data-i18n="thisDevice">Cet appareil :</span> <span id="my-device-name" data-i18n="detecting">Détection...</span></p>
+      <button id="about-trigger-btn" class="about-trigger-btn" data-i18n="aboutBtn">En savoir plus</button>
     </footer>
+
+    <div id="about-modal" class="modal-overlay hidden">
+      <div class="modal-card card">
+        <button id="about-modal-close" class="modal-close-btn">&times;</button>
+        <div class="modal-header">
+          <h3 data-i18n="aboutTitle">À propos de Easy-Share</h3>
+        </div>
+        <div class="modal-body about-modal-body">
+          <p data-i18n="aboutDesc1">Easy-Share est un outil minimaliste qui permet de partager du texte et des fichiers instantanément entre vos appareils.</p>
+          <p data-i18n="aboutDesc2">🔒 Tout se passe en local : vos données transitent directement de machine à machine sur votre réseau Wi-Fi local sans jamais être envoyées sur Internet.</p>
+          <p data-i18n="aboutDesc3">💡 Pour commencer, ouvrez ce site sur un autre appareil connecté au même réseau en scannant le code QR ou en copiant le lien.</p>
+        </div>
+        <div class="modal-footer">
+          <button id="about-close-btn" class="primary-btn" data-i18n="close">Fermer</button>
+        </div>
+      </div>
+    </div>
 
     <div id="send-modal" class="modal-overlay hidden">
       <div class="modal-card card">
@@ -127,12 +163,34 @@
             <img id="mobile-qrcode-img" alt="QR Code de connexion" style="display: none;" />
             <div id="mobile-qrcode-placeholder" class="qr-placeholder-dots">...</div>
           </div>
-          <div class="desktop-address-copy">
-            <code id="mobile-address-text" data-i18n="loading">Chargement...</code>
-            <button id="mobile-copy-btn" class="icon-btn-small" title="Copier le lien">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          <div class="mobile-qr-action-row flex-column">
+            <button id="mobile-copy-btn" class="copy-link-btn" data-i18n="copyLink">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              <span data-i18n="copyLink">Copier le lien</span>
             </button>
+            <button class="trouble-trigger-btn margin-top-sm" id="mobile-trouble-btn" data-i18n="troubleBtn">Impossible de se connecter ?</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="trouble-modal" class="modal-overlay hidden">
+      <div class="modal-card card">
+        <button id="trouble-modal-close" class="modal-close-btn">&times;</button>
+        <div class="modal-header">
+          <h3 data-i18n="troubleTitle">Problèmes de connexion</h3>
+        </div>
+        <div class="modal-body trouble-modal-body">
+          <p data-i18n="troubleIntro">Si l'autre appareil ne parvient pas à charger la page, vérifiez les points suivants :</p>
+          <div class="troubleshoot-list">
+            <div class="troubleshoot-item" data-i18n-html="troubleItem1"></div>
+            <div class="troubleshoot-item" data-i18n-html="troubleItem2"></div>
+            <div class="troubleshoot-item" data-i18n-html="troubleItem3"></div>
+            <div class="troubleshoot-item" data-i18n-html="troubleItem4"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="trouble-close-btn" class="primary-btn" data-i18n="close">Fermer</button>
         </div>
       </div>
     </div>
@@ -141,6 +199,10 @@
 
   <script src="translations/fr.js"></script>
   <script src="translations/en.js"></script>
+  <script src="translations/es.js"></script>
+  <script src="translations/de.js"></script>
+  <script src="translations/it.js"></script>
+  <script src="translations/pt.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

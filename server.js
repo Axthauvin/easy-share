@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
@@ -13,6 +14,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 const clients = new Map();
+let hostConnectedAtLeastOnce = false;
+let hostExitTimer = null;
 const messageHistory = [];
 const MAX_HISTORY = 100;
 
@@ -65,7 +68,18 @@ function getHistoryFor(clientId) {
 }
 
 wss.on('connection', (ws, req) => {
-  const clientIp = req.socket.remoteAddress.replace(/^.*:/, '') || '127.0.0.1';
+  const rawIp = req.socket.remoteAddress || '127.0.0.1';
+  const clientIp = rawIp.replace(/^.*:/, '') || '127.0.0.1';
+  const isHost = rawIp === '::1' || rawIp === '127.0.0.1' || rawIp.endsWith('127.0.0.1');
+  
+  if (isHost) {
+    hostConnectedAtLeastOnce = true;
+    if (hostExitTimer) {
+      clearTimeout(hostExitTimer);
+      hostExitTimer = null;
+    }
+  }
+  
   const userAgent = req.headers['user-agent'];
   const baseName = getDeviceName(userAgent);
   
@@ -85,7 +99,8 @@ wss.on('connection', (ws, req) => {
     ws,
     id: clientId,
     name: clientName,
-    ip: clientIp
+    ip: clientIp,
+    isHost
   });
 
   const localIps = getLocalIPs();
@@ -173,6 +188,19 @@ wss.on('connection', (ws, req) => {
     console.log(`[Disconnect] ${clientName} [ID: ${clientId}]`);
     clients.delete(clientId);
     broadcastClientsList();
+
+    if (hostConnectedAtLeastOnce && isHost) {
+      const hasHost = Array.from(clients.values()).some(c => c.isHost);
+      if (!hasHost) {
+        hostExitTimer = setTimeout(() => {
+          const stillHasHost = Array.from(clients.values()).some(c => c.isHost);
+          if (!stillHasHost) {
+            console.log('Host closed tab. Exiting server...');
+            process.exit(0);
+          }
+        }, 3000);
+      }
+    }
   });
 });
 

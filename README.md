@@ -21,3 +21,16 @@ A minimalist, local network file and text sharing utility. Allows quick transfer
    - On mobile, tap the burger menu to show the QR code.
 
 ![Demo image](.github/images/easy-share.png)
+
+## Install globally on youyr system
+
+To register the `easy-share` command globally and create a launcher shortcut directly on your desktop, run:
+
+```bash
+node install.js
+```
+
+After running the setup:
+
+- **Desktop Shortcut**: Double-click the **Easy-Share** icon on your Desktop to start the server and open the web page automatically.
+- **Global Command**: Type `easy-share` in any terminal window to start the server.

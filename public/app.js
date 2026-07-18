@@ -6,7 +6,6 @@ const devicesContainer = document.getElementById('devices-container');
 
 const desktopQrcodeImg = document.getElementById('desktop-qrcode-img');
 const desktopQrcodePlaceholder = document.getElementById('desktop-qrcode-placeholder');
-const desktopAddressText = document.getElementById('desktop-address-text');
 const desktopCopyBtn = document.getElementById('desktop-copy-btn');
 
 const burgerMenuBtn = document.getElementById('burger-menu-btn');
@@ -14,7 +13,6 @@ const mobileQrModal = document.getElementById('mobile-qr-modal');
 const mobileQrClose = document.getElementById('mobile-qr-close');
 const mobileQrcodeImg = document.getElementById('mobile-qrcode-img');
 const mobileQrcodePlaceholder = document.getElementById('mobile-qrcode-placeholder');
-const mobileAddressText = document.getElementById('mobile-address-text');
 const mobileCopyBtn = document.getElementById('mobile-copy-btn');
 
 const sendModal = document.getElementById('send-modal');
@@ -34,8 +32,23 @@ const receivedModalTitle = document.getElementById('received-modal-title');
 const receivedModalBody = document.getElementById('received-modal-body');
 const receivedCloseBtn = document.getElementById('received-close-btn');
 
-const langFrBtn = document.getElementById('lang-fr-btn');
-const langEnBtn = document.getElementById('lang-en-btn');
+const aboutModal = document.getElementById('about-modal');
+const aboutTriggerBtn = document.getElementById('about-trigger-btn');
+const aboutModalClose = document.getElementById('about-modal-close');
+const aboutCloseBtn = document.getElementById('about-close-btn');
+
+const troubleModal = document.getElementById('trouble-modal');
+const desktopTroubleBtn = document.getElementById('desktop-trouble-btn');
+const mobileTroubleBtn = document.getElementById('mobile-trouble-btn');
+const troubleModalClose = document.getElementById('trouble-modal-close');
+const troubleCloseBtn = document.getElementById('trouble-close-btn');
+
+const langDropdown = document.getElementById('lang-dropdown');
+const langDropdownTrigger = document.getElementById('lang-dropdown-trigger');
+const langCurrentLabel = document.getElementById('lang-current-label');
+const langOptions = document.querySelectorAll('.lang-option');
+
+const langLabels = { fr: 'Français', en: 'English', es: 'Español', de: 'Deutsch', it: 'Italiano', pt: 'Português' };
 
 let socket = null;
 let reconnectTimeout = null;
@@ -46,7 +59,7 @@ let activeTargetId = '';
 let selectedFile = null;
 let currentLang = 'en';
 
-const i18n = { fr, en };
+const i18n = { fr, en, es, de, it, pt };
 
 const copySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
 const checkSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"/></svg>`;
@@ -68,10 +81,16 @@ function getTranslation(key) {
 function applyLanguage(lang) {
   currentLang = lang;
   
-  langFrBtn.classList.toggle('active', lang === 'fr');
-  langEnBtn.classList.toggle('active', lang === 'en');
+  langCurrentLabel.textContent = langLabels[lang] || lang;
+  langOptions.forEach(opt => {
+    opt.classList.toggle('active', opt.dataset.lang === lang);
+  });
   
   document.querySelectorAll('[data-i18n]').forEach(el => {
+    // Avoid overwriting elements whose state has been resolved (like custom device name or server URL)
+    if (el.id === 'my-device-name' && el.textContent !== 'Détection...' && el.textContent !== 'Detecting...') {
+      return;
+    }
     const key = el.getAttribute('data-i18n');
     el.textContent = getTranslation(key);
   });
@@ -92,13 +111,21 @@ function applyLanguage(lang) {
       sendModalTitle.textContent = `${getTranslation('shareWith')} ${activeClient.name}`;
     }
   }
+
+  localStorage.setItem('easy-share-lang', lang);
 }
 
 function detectLanguage() {
-  const lang = navigator.language || navigator.userLanguage;
-  if (lang && lang.startsWith('fr')) {
-    return 'fr';
+  const savedLang = localStorage.getItem('easy-share-lang');
+  if (savedLang && i18n[savedLang]) {
+    return savedLang;
   }
+  const lang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+  if (lang.startsWith('fr')) return 'fr';
+  if (lang.startsWith('es')) return 'es';
+  if (lang.startsWith('de')) return 'de';
+  if (lang.startsWith('it')) return 'it';
+  if (lang.startsWith('pt')) return 'pt';
   return 'en';
 }
 
@@ -136,11 +163,7 @@ function connect() {
           mobileQrcodePlaceholder.style.display = 'none';
         }
         
-        desktopAddressText.removeAttribute('data-i18n');
-        mobileAddressText.removeAttribute('data-i18n');
-        desktopAddressText.textContent = serverUrl;
-        mobileAddressText.textContent = serverUrl;
-      } else if (data.type === 'clients_list') {
+        } else if (data.type === 'clients_list') {
         connectedClients = data.clients;
         
         const me = connectedClients.find(c => c.id === myClientId);
@@ -453,16 +476,50 @@ burgerMenuBtn.addEventListener('click', () => {
   mobileQrModal.classList.remove('hidden');
 });
 
+const openLargeQr = () => {
+  mobileQrModal.classList.remove('hidden');
+};
+
+desktopQrcodeImg.addEventListener('click', openLargeQr);
+desktopQrcodePlaceholder.addEventListener('click', openLargeQr);
+
 mobileQrClose.addEventListener('click', () => {
   mobileQrModal.classList.add('hidden');
 });
 
-[sendModal, receivedModal, mobileQrModal].forEach(modal => {
+[sendModal, receivedModal, mobileQrModal, aboutModal, troubleModal].forEach(modal => {
   modal.addEventListener('click', (e) => {
     if (e.target === modal) {
       modal.classList.add('hidden');
     }
   });
+});
+
+aboutTriggerBtn.addEventListener('click', () => {
+  aboutModal.classList.remove('hidden');
+});
+
+aboutModalClose.addEventListener('click', () => {
+  aboutModal.classList.add('hidden');
+});
+
+aboutCloseBtn.addEventListener('click', () => {
+  aboutModal.classList.add('hidden');
+});
+
+const openTroubleModal = () => {
+  troubleModal.classList.remove('hidden');
+};
+
+desktopTroubleBtn.addEventListener('click', openTroubleModal);
+mobileTroubleBtn.addEventListener('click', openTroubleModal);
+
+troubleModalClose.addEventListener('click', () => {
+  troubleModal.classList.add('hidden');
+});
+
+troubleCloseBtn.addEventListener('click', () => {
+  troubleModal.classList.add('hidden');
 });
 
 desktopCopyBtn.addEventListener('click', () => {
@@ -501,9 +558,16 @@ function copyTextToClipboard(text, buttonElement) {
 }
 
 function setCopyFeedback(btn) {
-  const originalText = btn.textContent;
-  
-  if (btn.classList.contains('icon-btn-small')) {
+  if (btn.classList.contains('copy-link-btn')) {
+    const span = btn.querySelector('span');
+    const originalHtml = btn.innerHTML;
+    if (span) span.textContent = getTranslation('linkCopied');
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      if (span) span.textContent = getTranslation('copyLink');
+    }, 1800);
+  } else if (btn.classList.contains('icon-btn-small')) {
     btn.classList.add('copied');
     btn.innerHTML = checkSvg;
     setTimeout(() => {
@@ -511,6 +575,7 @@ function setCopyFeedback(btn) {
       btn.innerHTML = copySvg;
     }, 1500);
   } else {
+    const originalText = btn.textContent;
     btn.textContent = getTranslation('copiedFeedback');
     btn.classList.add('copied');
     setTimeout(() => {
@@ -541,8 +606,24 @@ function escapeHTML(str) {
   );
 }
 
-langFrBtn.addEventListener('click', () => applyLanguage('fr'));
-langEnBtn.addEventListener('click', () => applyLanguage('en'));
+langDropdownTrigger.addEventListener('click', (e) => {
+  e.stopPropagation();
+  langDropdown.classList.toggle('open');
+  langDropdownTrigger.setAttribute('aria-expanded', langDropdown.classList.contains('open'));
+});
+
+langOptions.forEach(opt => {
+  opt.addEventListener('click', () => {
+    applyLanguage(opt.dataset.lang);
+    langDropdown.classList.remove('open');
+    langDropdownTrigger.setAttribute('aria-expanded', 'false');
+  });
+});
+
+document.addEventListener('click', () => {
+  langDropdown.classList.remove('open');
+  langDropdownTrigger.setAttribute('aria-expanded', 'false');
+});
 
 const detectedLang = detectLanguage();
 applyLanguage(detectedLang);
