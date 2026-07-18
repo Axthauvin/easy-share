@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Easy-Share</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <header class="app-header">
+      <div class="header-left">
+        <div class="title-row">
+          <h1>Easy-Share</h1>
+          <div class="lang-selector">
+            <button id="lang-fr-btn" class="lang-btn">FR</button>
+            <span class="lang-divider">|</span>
+            <button id="lang-en-btn" class="lang-btn">EN</button>
+          </div>
+        </div>
+        <div id="connection-status" class="status-indicator status-connecting">
+          <span class="status-dot"></span>
+          <span class="status-text" data-i18n="connecting">Connexion...</span>
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <div class="desktop-qr-card card">
+          <div class="qr-preview-box">
+            <img id="desktop-qrcode-img" alt="QR Code" style="display: none;" />
+            <div id="desktop-qrcode-placeholder" class="qr-placeholder-dots">...</div>
+          </div>
+          <div class="desktop-address-copy">
+            <code id="desktop-address-text" data-i18n="loading">Chargement...</code>
+            <button id="desktop-copy-btn" class="icon-btn-small" title="Copier le lien">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <button id="burger-menu-btn" class="burger-btn" title="Afficher le QR Code">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="main-viewport">
+      <div id="empty-state" class="empty-state">
+        <div class="radar-animation">
+          <span class="ring ring-1"></span>
+          <span class="ring ring-2"></span>
+          <span class="ring ring-3"></span>
+          <div class="radar-dot">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wifi"><path d="M12 20h.01"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M5 13a10 10 0 0 1 14 0"/><path d="M1.5 9.5a15 15 0 0 1 21 0"/></svg>
+          </div>
+        </div>
+        <h3 data-i18n="noDevicesTitle">Aucun appareil connecté</h3>
+        <p data-i18n="noDevicesDesc">Lancez Easy-Share sur un autre appareil pour commencer à partager</p>
+      </div>
+
+      <div id="devices-container" class="devices-container hidden">
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <p><span data-i18n="thisDevice">Cet appareil :</span> <span id="my-device-name" data-i18n="detecting">Détection...</span></p>
+    </footer>
+
+    <div id="send-modal" class="modal-overlay hidden">
+      <div class="modal-card card">
+        <button id="send-modal-close" class="modal-close-btn">&times;</button>
+        <div class="modal-header">
+          <h3 id="send-modal-title">Envoyer à ...</h3>
+        </div>
+        <div class="modal-body">
+          <textarea id="text-input" data-i18n-placeholder="textareaPlaceholder" placeholder="Écrivez votre message ici..."></textarea>
+          
+          <div id="modal-drop-zone" class="modal-drop-zone">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-upload-cloud"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+            <p id="dropzone-text-container" data-i18n-html="dropzoneHtml">Glissez-déposez un fichier ici ou <span class="browse-link">parcourez</span></p>
+            <input type="file" id="file-input" style="display: none;" />
+          </div>
+
+          <div id="selected-file-badge" class="selected-file-badge hidden">
+            <span class="file-name-text">filename.pdf</span>
+            <button id="cancel-file-btn" class="cancel-file-btn">&times;</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="send-btn" class="primary-btn" disabled>
+            <span data-i18n="share">Partager</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="send-icon"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="received-modal" class="modal-overlay hidden">
+      <div class="modal-card card popup-card">
+        <button id="received-modal-close" class="modal-close-btn">&times;</button>
+        <div class="modal-header">
+          <h3 id="received-modal-title" data-i18n="newShare">Nouveau partage</h3>
+        </div>
+        <div class="modal-body" id="received-modal-body">
+        </div>
+        <div class="modal-footer">
+          <button id="received-close-btn" class="primary-btn">
+            <span data-i18n="close">Fermer</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="mobile-qr-modal" class="modal-overlay hidden">
+      <div class="modal-card card">
+        <button id="mobile-qr-close" class="modal-close-btn">&times;</button>
+        <div class="modal-header">
+          <h3 data-i18n="connect">Se connecter</h3>
+        </div>
+        <div class="modal-body mobile-qr-body">
+          <p data-i18n="scanDescription">Scannez ce code QR avec un autre appareil connecté au même réseau :</p>
+          <div class="mobile-qr-container">
+            <img id="mobile-qrcode-img" alt="QR Code de connexion" style="display: none;" />
+            <div id="mobile-qrcode-placeholder" class="qr-placeholder-dots">...</div>
+          </div>
+          <div class="desktop-address-copy">
+            <code id="mobile-address-text" data-i18n="loading">Chargement...</code>
+            <button id="mobile-copy-btn" class="icon-btn-small" title="Copier le lien">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="translations/fr.js"></script>
+  <script src="translations/en.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
