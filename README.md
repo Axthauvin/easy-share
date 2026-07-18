@@ -6,6 +6,8 @@
 
 Allows quick transfers between devices (PCs, phones, tablets) connected to the same Wi-Fi network.
 
+![Demo image](.github/images/easy-share-main.png)
+
 Supported platforms: Windows, Linux, macOS, Android, iOS.
 Supported languages: English, Spanish, French, German, Italian, Portuguese.
 
@@ -26,8 +28,6 @@ Supported languages: English, Spanish, French, German, Italian, Portuguese.
 3. Connect your devices:
    - On desktop, scan the QR code displayed in the top-right corner.
    - On mobile, tap the burger menu to show the QR code.
-
-![Demo image](.github/images/easy-share-main.png)
 
 ## Install globally on youyr system
 
