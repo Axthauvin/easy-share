@@ -2,14 +2,15 @@
   "name": "easy-share",
   "version": "1.0.0",
   "description": "Simple local network text sharing tool",
-  "main": "server.js",
+  "main": "main.js",
   "bin": {
     "easy-share": "./server.js"
   },
   "scripts": {
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "electron": "electron ."
   },
   "dependencies": {
     "easy-share": "link:",
@@ -19,5 +20,8 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^43.1.1"
+  }
 }

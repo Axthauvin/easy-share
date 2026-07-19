@@ -34,7 +34,7 @@ try {
 
   if (platform === 'win32') {
     const batPath = path.join(projectPath, 'Easy-Share.bat');
-    const batContent = `@echo off\r\ncd /d "${projectPath}"\r\nstart http://localhost:3000\r\npnpm start\r\n`;
+    const batContent = `@echo off\r\ncd /d "${projectPath}"\r\npnpm electron\r\n`;
     fs.writeFileSync(batPath, batContent, 'utf8');
 
     const icoPath = path.join(projectPath, 'public', 'icon.ico');
@@ -65,13 +65,13 @@ try {
     }
   } else if (platform === "darwin") {
     const shortcutPath = path.join(desktopPath, "Easy-Share.command");
-    const content = `#!/bin/bash\ncd "${projectPath}"\nopen http://localhost:3000\npnpm start\n`;
+    const content = `#!/bin/bash\ncd "${projectPath}"\npnpm electron\n`;
     fs.writeFileSync(shortcutPath, content, "utf8");
     fs.chmodSync(shortcutPath, "755");
     console.log(`✓ Desktop shortcut created at: ${shortcutPath}`);
   } else if (platform === "linux") {
     const shortcutPath = path.join(desktopPath, "Easy-Share.desktop");
-    const content = `[Desktop Entry]\nVersion=1.0\nType=Application\nName=Easy-Share\nComment=Local network sharing utility\nExec=bash -c 'cd "${projectPath}" && xdg-open http://localhost:3000 && pnpm start'\nIcon=${path.join(projectPath, "public", "icon.png")}\nTerminal=true\nCategories=Utility;\n`;
+    const content = `[Desktop Entry]\nVersion=1.0\nType=Application\nName=Easy-Share\nComment=Local network sharing utility\nExec=bash -c 'cd "${projectPath}" && pnpm electron'\nIcon=${path.join(projectPath, "public", "icon.png")}\nTerminal=true\nCategories=Utility;\n`;
     fs.writeFileSync(shortcutPath, content, "utf8");
     fs.chmodSync(shortcutPath, "755");
     console.log(`✓ Desktop shortcut created at: ${shortcutPath}`);
