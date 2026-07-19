@@ -67,7 +67,7 @@ let serverUrl = "";
 let myClientId = "";
 let connectedClients = [];
 let activeTargetId = "";
-let selectedFile = null;
+let selectedFiles = [];
 let currentLang = "en";
 
 const i18n = { fr, en, es, de, it, pt };
@@ -288,14 +288,20 @@ function setupDragAndDropOnBubble(bubbleElement, targetId) {
   });
 
   bubbleElement.addEventListener("drop", (e) => {
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      sendDroppedFile(file, targetId);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      sendDroppedFiles(files, targetId);
     }
   });
 }
 
-async function sendDroppedFile(file, targetId) {
+async function sendDroppedFiles(files, targetId) {
+  for (let i = 0; i < files.length; i++) {
+    await sendDroppedFile(files[i], targetId, i + 1, files.length);
+  }
+}
+
+async function sendDroppedFile(file, targetId, index = null, total = null) {
   const bubble = document.querySelector(
     `.device-bubble[data-id="${targetId}"]`,
   );
@@ -303,7 +309,11 @@ async function sendDroppedFile(file, targetId) {
   if (bubble) {
     label = bubble.querySelector(".device-label");
     originalText = label.textContent;
-    label.textContent = getTranslation("loading");
+    if (index !== null && total !== null) {
+      label.textContent = `${getTranslation("loading")} (${index}/${total})`;
+    } else {
+      label.textContent = getTranslation("loading");
+    }
     label.style.color = "var(--warning-color)";
   }
 
@@ -376,50 +386,55 @@ sendModalClose.addEventListener("click", () => {
 
 async function sendModalPayload() {
   const text = textInput.value.trim();
-  if (!text && !selectedFile) return;
+  if (!text && selectedFiles.length === 0) return;
 
   if (socket && socket.readyState === WebSocket.OPEN) {
-    if (selectedFile) {
+    if (selectedFiles.length > 0) {
       const originalBtnText = sendBtn.textContent;
       sendBtn.disabled = true;
-      sendBtn.textContent = getTranslation("loading");
-
-      const fileId =
-        "f_" +
-        Date.now().toString(36) +
-        Math.random().toString(36).substring(2, 5);
 
       try {
-        const response = await fetch(
-          `/upload/${fileId}?name=${encodeURIComponent(selectedFile.name)}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": selectedFile.type || "application/octet-stream",
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const file = selectedFiles[i];
+          sendBtn.textContent = `${getTranslation("loading")} (${i + 1}/${selectedFiles.length})`;
+
+          const fileId =
+            "f_" +
+            Date.now().toString(36) +
+            Math.random().toString(36).substring(2, 5);
+
+          const response = await fetch(
+            `/upload/${fileId}?name=${encodeURIComponent(file.name)}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": file.type || "application/octet-stream",
+              },
+              body: file,
             },
-            body: selectedFile,
-          },
-        );
+          );
 
-        if (!response.ok) throw new Error("Upload failed");
+          if (!response.ok) throw new Error("Upload failed");
 
-        socket.send(
-          JSON.stringify({
-            type: "share_file",
-            targetId: activeTargetId,
-            text: text,
-            fileName: selectedFile.name,
-            fileType: selectedFile.type || "application/octet-stream",
-            fileSize: selectedFile.size,
-            fileId: fileId,
-          }),
-        );
+          socket.send(
+            JSON.stringify({
+              type: "share_file",
+              targetId: activeTargetId,
+              text: i === 0 ? text : "",
+              fileName: file.name,
+              fileType: file.type || "application/octet-stream",
+              fileSize: file.size,
+              fileId: fileId,
+            }),
+          );
+        }
       } catch (err) {
         console.error(err);
-        alert("Erreur lors du transfert du fichier.");
+        alert("Erreur lors du transfert des fichiers.");
       } finally {
         sendBtn.disabled = false;
         sendBtn.textContent = originalBtnText;
+        clearFileSelection();
       }
     } else {
       socket.send(
@@ -437,7 +452,7 @@ async function sendModalPayload() {
 
 function updateSendBtnState() {
   const isConnected = socket && socket.readyState === WebSocket.OPEN;
-  const hasContent = textInput.value.trim().length > 0 || selectedFile !== null;
+  const hasContent = textInput.value.trim().length > 0 || selectedFiles.length > 0;
   sendBtn.disabled = !isConnected || !hasContent;
 }
 
@@ -456,9 +471,9 @@ modalDropZone.addEventListener("click", () => {
 });
 
 fileInput.addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    handleModalSelectedFile(file);
+  const files = e.target.files;
+  if (files && files.length > 0) {
+    handleModalSelectedFiles(files);
   }
 });
 
@@ -487,23 +502,29 @@ fileInput.addEventListener("change", (e) => {
 });
 
 modalDropZone.addEventListener("drop", (e) => {
-  const file = e.dataTransfer.files[0];
-  if (file) {
-    handleModalSelectedFile(file);
+  const files = e.dataTransfer.files;
+  if (files && files.length > 0) {
+    handleModalSelectedFiles(files);
   }
 });
 
-function handleModalSelectedFile(file) {
-  selectedFile = file;
-  fileNameText.textContent = file.name;
-  selectedFileBadge.classList.remove("hidden");
+function handleModalSelectedFiles(files) {
+  selectedFiles = Array.from(files);
+  if (selectedFiles.length > 0) {
+    if (selectedFiles.length === 1) {
+      fileNameText.textContent = selectedFiles[0].name;
+    } else {
+      fileNameText.textContent = `${selectedFiles.length} fichiers sélectionnés`;
+    }
+    selectedFileBadge.classList.remove("hidden");
+  }
   updateSendBtnState();
 }
 
 cancelFileBtn.addEventListener("click", clearFileSelection);
 
 function clearFileSelection() {
-  selectedFile = null;
+  selectedFiles = [];
   fileInput.value = "";
   selectedFileBadge.classList.add("hidden");
   updateSendBtnState();
@@ -511,22 +532,33 @@ function clearFileSelection() {
 
 function showReceivedPopup(message) {
   receivedModalTitle.textContent = getTranslation("newShare");
-  receivedModalBody.innerHTML = "";
+
+  const isModalHidden = receivedModal.classList.contains("hidden");
+  if (isModalHidden) {
+    receivedModalBody.innerHTML = "";
+    receivedModal.classList.remove("hidden");
+  }
+
+  const shareItem = document.createElement("div");
+  shareItem.className = "received-share-item";
+  shareItem.style.borderBottom = "1px solid var(--card-border)";
+  shareItem.style.paddingBottom = "1rem";
+  shareItem.style.marginBottom = "1rem";
 
   if (message.type === "file") {
     const fileDownloadUrl = `/download/${message.fileId}`;
     const sizeStr = formatBytes(message.fileSize);
 
     if (message.fileType.startsWith("image/")) {
-      receivedModalBody.innerHTML = `
+      shareItem.innerHTML = `
         ${message.text ? `<p style="margin-bottom: 0.75rem; font-size: 0.95rem;">${escapeHTML(message.text)}</p>` : ""}
         <img src="${fileDownloadUrl}" class="received-image-preview" alt="Image" onclick="window.open('${fileDownloadUrl}')" />
-        <div class="received-actions">
+        <div class="received-actions" style="margin-top: 0.5rem;">
           <a class="action-btn-small" href="${fileDownloadUrl}" download="${escapeHTML(message.fileName)}" target="_blank">${getTranslation("saveImage")}</a>
         </div>
       `;
     } else {
-      receivedModalBody.innerHTML = `
+      shareItem.innerHTML = `
         ${message.text ? `<p style="margin-bottom: 0.75rem; font-size: 0.95rem;">${escapeHTML(message.text)}</p>` : ""}
         <div class="received-file-card">
           <div class="received-file-icon">${fileSvg}</div>
@@ -535,26 +567,38 @@ function showReceivedPopup(message) {
             <span class="received-file-size">${sizeStr}</span>
           </div>
         </div>
-        <div class="received-actions">
+        <div class="received-actions" style="margin-top: 0.5rem;">
           <a class="action-btn-small" href="${fileDownloadUrl}" download="${escapeHTML(message.fileName)}" target="_blank">${getTranslation("download")}</a>
         </div>
       `;
     }
   } else {
-    receivedModalBody.innerHTML = `
+    shareItem.innerHTML = `
       <div class="received-text-body">${escapeHTML(message.text)}</div>
-      <div class="received-actions">
-        <button class="action-btn-small copy-btn" id="popup-copy-btn">${getTranslation("copyText")}</button>
+      <div class="received-actions" style="margin-top: 0.5rem;">
+        <button class="action-btn-small copy-btn">${getTranslation("copyText")}</button>
       </div>
     `;
 
-    const popupCopyBtn = receivedModalBody.querySelector("#popup-copy-btn");
-    popupCopyBtn.addEventListener("click", () => {
-      copyTextToClipboard(message.text, popupCopyBtn);
+    const copyBtn = shareItem.querySelector(".copy-btn");
+    copyBtn.addEventListener("click", () => {
+      copyTextToClipboard(message.text, copyBtn);
     });
   }
 
-  receivedModal.classList.remove("hidden");
+  if (receivedModalBody.children.length > 0) {
+    const prevItems = receivedModalBody.querySelectorAll(".received-share-item");
+    if (prevItems.length > 0) {
+      prevItems[prevItems.length - 1].style.borderBottom = "1px solid var(--card-border)";
+      prevItems[prevItems.length - 1].style.paddingBottom = "1rem";
+      prevItems[prevItems.length - 1].style.marginBottom = "1rem";
+    }
+  }
+  shareItem.style.borderBottom = "none";
+  shareItem.style.paddingBottom = "0";
+  shareItem.style.marginBottom = "0";
+
+  receivedModalBody.appendChild(shareItem);
 }
 
 receivedModalClose.addEventListener("click", () => {
