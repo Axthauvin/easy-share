@@ -19,7 +19,7 @@
     "ws": "^8.16.0"
   },
   "keywords": [],
-  "author": "Axthauvin",
+  "author": "Axthauvin <axthauvin@users.noreply.github.com>",
   "license": "ISC",
   "devDependencies": {
     "electron": "^43.1.1",
