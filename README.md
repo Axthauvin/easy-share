@@ -1,48 +1,79 @@
 <div align="center">
-  <img src="public/icon.png" alt="Easy-Share Logo" width="200" style="border-radius: 10px;"/>
+  <img src="public/icon.png" alt="Easy-Share Logo" width="128" style="border-radius: 28px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);"/>
+  <br />
+  <br />
   <h1>Easy-Share</h1>
-  <p>A minimalist, local network file and text sharing utility.</p>
+  <p><strong>Open-source, fast, and universal alternative to AirDrop.</strong></p>
 </div>
 
-Allows quick transfers between devices (PCs, phones, tablets) connected to the same Wi-Fi network.
+---
 
-![Demo image](.github/images/easy-share-main.png)
+**Easy-Share** is a desktop application and lightweight web service designed to instantly share files and text between all your devices (PC, Mac, iPhone, Android, tablets).
 
-Supported platforms: Windows, Linux, macOS, Android, iOS.
-Supported languages: English, Spanish, French, German, Italian, Portuguese.
+Unlike AirDrop, which is locked to the Apple ecosystem, Easy-Share should work everywhere. The app creates a local bridge over your Wi-Fi network, which means that no data is sent to the cloud or goes through the Internet. That makes it a **fast, secure, and private** solution for sharing files and text between devices.
 
-## Running the Project
+![Easy-Share Interface](.github/images/easy-share-main.png)
 
-1. Install dependencies:
+---
 
-   ```bash
-   pnpm install # or npm install
-   ```
+## Quick Start & Installation
 
-2. Start the local server:
+### For End Users
 
-   ```bash
-   pnpm start # or npm start
-   ```
+To install Easy-Share as a native application on your desktop:
 
-3. Connect your devices:
-   - On desktop, scan the QR code displayed in the top-right corner.
-   - On mobile, tap the burger menu to show the QR code.
+1. Head over to the **[Releases](https://github.com/Axthauvin/easy-share/releases)** tab of this GitHub repository.
+2. Download the installer matching your operating system:
+   - **Windows**: The `.exe` file (classic NSIS installer with setup wizard, directory selection, and desktop shortcut option).
+   - **macOS**: The `.dmg` or `.zip` file.
+   - **Linux**: The `.deb` package or `.AppImage` file.
+3. Launch the application. It will automatically start the local server and open a clean window.
+4. To connect another device (like a smartphone), simply scan the QR code displayed on the screen while connected to the same Wi-Fi network, it will open the Easy-Share web interface in your mobile browser.
 
-## Install globally on youyr system
+---
 
-To register the `easy-share` command globally and create a launcher shortcut directly on your desktop, run:
+## 🛠️ Development & Compilation
+
+If you want to modify the code or build the installer yourself:
+
+### Install dependencies
 
 ```bash
-node install.js
+pnpm install # or npm install
 ```
 
-After running the setup:
+### Run in development mode
 
-- **Desktop Shortcut**: Double-click the **Easy-Share** icon on your Desktop to start the server and open the web page automatically.
-- **Global Command**: Type `easy-share` in any terminal window to start the server.
+To start the Electron desktop app locally:
 
-### Contributing
+```bash
+pnpm electron # or npm run electron
+```
 
-Contributions are welcome! If you have any ideas, suggestions, or improvements, please feel free to submit a pull request or open an issue.
-(If you want to add a new language, please check the `public/translations` folder for existing translations and add your own.)
+### Compile & build installers
+
+To package and generate native installers (NSIS, DMG, DEB) for your current platform:
+
+```bash
+pnpm run build # or npm run build
+```
+
+You will find the generated distribution files in the `/dist` directory.
+
+---
+
+## Supported Languages
+
+The application should automatically detect your system language and currently supports:
+_English, French, Spanish, German, Italian and Portuguese._
+
+To contribute and add a new language, simply add a translation file in the `public/translations` directory.
+
+## Contributing
+
+Contributions are welcome! If you want to contribute to the project, do not hesitate to fork the repository, make your changes, and submit a pull request. Please ensure that your code adheres to the existing style and conventions.
+
+<div align="center">
+  <br />
+  <p>Made with ❤️ by <a href="https://github.com/axthauvin">axthauvin</a>
+</div>

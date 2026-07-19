@@ -1,2 +1,7 @@
+allowBuilds:
+  electron-winstaller: true
+
+nodeLinker: hoisted
+
 overrides:
   easy-share: 'link:'

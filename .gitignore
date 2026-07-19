@@ -5,3 +5,8 @@ node_modules/
 
 *.desktop
 *.bat
+
+# electron-builder
+dist/
+build/
+out/

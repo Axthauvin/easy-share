@@ -10,18 +10,53 @@
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node server.js",
-    "electron": "electron ."
+    "electron": "electron .",
+    "build": "electron-builder"
   },
   "dependencies": {
-    "easy-share": "link:",
     "express": "^4.19.2",
     "qrcode": "^1.5.4",
     "ws": "^8.16.0"
   },
   "keywords": [],
-  "author": "",
+  "author": "Axthauvin",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^43.1.1"
+    "electron": "^43.1.1",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.axthauvin.easyshare",
+    "productName": "Easy-Share",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "public/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Easy-Share"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "icon": "public/icon.png"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility",
+      "icon": "public/icon.png"
+    }
   }
 }
