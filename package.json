@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "express": "^4.19.2",
+    "flag-icons": "^7.5.0",
     "qrcode": "^1.5.4",
     "ws": "^8.16.0"
   },

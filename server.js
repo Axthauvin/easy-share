@@ -9,7 +9,68 @@ const QRCode = require('qrcode');
 const app = express();
 const port = 3000;
 
+const fs = require('fs');
+
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/flags', express.static(path.join(__dirname, 'node_modules/flag-icons')));
+
+// Create a temp folder for storing uploads
+const uploadDir = path.join(os.tmpdir(), 'easy-share-uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const files = new Map();
+
+// HTTP upload endpoint (streams directly to disk)
+app.post('/upload/:id', (req, res) => {
+  const fileId = req.params.id;
+  const tempFilePath = path.join(uploadDir, fileId);
+  const writeStream = fs.createWriteStream(tempFilePath);
+  
+  req.pipe(writeStream);
+  
+  writeStream.on('finish', () => {
+    files.set(fileId, {
+      path: tempFilePath,
+      name: req.query.name || 'file',
+      contentType: req.headers['content-type'] || 'application/octet-stream'
+    });
+    
+    // Auto-clean from disk after 20 minutes
+    setTimeout(() => {
+      try {
+        if (fs.existsSync(tempFilePath)) {
+          fs.unlinkSync(tempFilePath);
+        }
+      } catch (err) {
+        console.error('Error cleaning up temp file:', err);
+      }
+      files.delete(fileId);
+    }, 20 * 60 * 1000);
+
+    res.sendStatus(200);
+  });
+  
+  writeStream.on('error', (err) => {
+    console.error('Upload stream error:', err);
+    res.sendStatus(500);
+  });
+});
+
+// HTTP download endpoint (streams directly from disk)
+app.get('/download/:id', (req, res) => {
+  const file = files.get(req.params.id);
+  if (!file || !fs.existsSync(file.path)) {
+    return res.status(404).send('Fichier non trouvé ou expiré.');
+  }
+  
+  res.setHeader('Content-Type', file.contentType);
+  res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(file.name)}"`);
+  
+  const readStream = fs.createReadStream(file.path);
+  readStream.pipe(res);
+});
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
@@ -145,7 +206,7 @@ wss.on('connection', (ws, req) => {
           fileName: data.fileName || '',
           fileType: data.fileType || '',
           fileSize: data.fileSize || 0,
-          fileData: data.fileData || null,
+          fileId: data.fileId || null,
           sender: senderInfo ? senderInfo.name : 'Inconnu',
           senderId: clientId,
           targetId: targetId,

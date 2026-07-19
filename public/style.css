@@ -1169,4 +1169,10 @@ textarea:focus {
   margin-right: 8px;
 }
 
+/* Enable clicks on language menu elements inside window-drag-area overlay */
+.lang-dropdown-menu,
+.lang-option {
+  -webkit-app-region: no-drag !important;
+}
+
 
